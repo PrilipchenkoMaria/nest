@@ -15,10 +15,17 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
+  it.skip('/api/weather (GET)', () => {
     return request(app.getHttpServer())
-      .get('/')
+      .get('/api/weather')
       .expect(200)
-      .expect('Hello World!');
+      .buffer()
+      .parse((res, cb) => res.once('data', chunk => {
+        res.pause();
+        res.removeAllListeners();
+        expect(chunk.toString()).toBe('0\n');
+        cb(null, null);
+      }))
+      .end();
   });
 });
