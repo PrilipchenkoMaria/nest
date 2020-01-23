@@ -1,4 +1,5 @@
 import { Controller, Get, Query, Response } from '@nestjs/common';
+import { map, switchMap } from 'rxjs/operators';
 import { AppService } from './app.service';
 
 @Controller('api')
@@ -7,11 +8,15 @@ export class AppController {
 
   @Get('weather')
   streamWeather(
-    @Query() params: string[],
+    @Query() params,
     @Response() res,
-  ): void {
+  ) {
     this.appService
-      .getRequestInterval(1e3)
+      .getRequestInterval(6e5)
+      .pipe(
+        switchMap(() => this.appService.getWeather(params)),
+        map(JSON.stringify as () => string),
+      )
       .subscribe(i => res.write(`${i}\n`));
   }
 }
