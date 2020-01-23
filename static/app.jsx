@@ -28,10 +28,10 @@ class App extends React.Component {
     return (
       <form onSubmit={this.submit}>
         <label>
-          Latitude: <input name="lat" value="50" />
+          Latitude: <input name="lat" defaultValue="50" />
         </label>
         <label>
-          Longitude: <input name="lon" value="36" />
+          Longitude: <input name="lon" defaultValue="36" />
         </label>
         <input type="submit" value="Subscribe" />
         <input type="button" value="Abort" onClick={this.cancel} disabled={!this.state.request} />
@@ -75,5 +75,10 @@ function drainStream(stream, cb) {
 }
 
 function parseChunk(chunk) {
-  return JSON.parse(new TextDecoder("utf-8").decode(chunk));
+  const [text] = new TextDecoder("utf-8").decode(chunk).split('\n');
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('error parsing:', text);
+  }
 }
