@@ -12,7 +12,7 @@ export class AppController {
     @Response() res,
   ) {
     this.appService
-      .getRequestInterval(6e5)
+      .getRequestInterval(1e4)
       .pipe(
         switchMap(() => this.appService.getWeather(params)),
         map(JSON.stringify as () => string),
