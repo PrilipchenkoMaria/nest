@@ -5,3 +5,5 @@ services:
     build: .
     ports:
       - 3000:3000
+    environment:
+      API_KEY: b01c23b43f0975f5c8070122a579fa9a

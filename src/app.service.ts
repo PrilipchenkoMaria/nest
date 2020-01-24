@@ -22,7 +22,7 @@ export class AppService {
     return this.http.get('https://api.openweathermap.org/data/2.5/weather', {
       params: {
         ...params,
-        APPID: 'b01c23b43f0975f5c8070122a579fa9a',
+        APPID: process.env.API_KEY,
       },
     }).pipe(map(res => res.data));
   }
