@@ -7,7 +7,10 @@ class App extends React.Component {
 
     this.cancel();
     const request = fetchBSONStream(`/api/weather?lat=${lat.value}&lon=${lon.value}`, this.onData);
-    this.setState({ request });
+    this.setState({
+      request,
+      count: 0,
+    });
   }
 
   cancel = () => {
@@ -20,22 +23,31 @@ class App extends React.Component {
   }
 
   onData = data => {
-    console.log('chunk', data);
-    this.setState({ data });
+    console.info('chunk', data);
+    this.setState({
+      data,
+      count: this.state.count + 1,
+    });
   }
 
   render() {
     return (
-      <form onSubmit={this.submit}>
-        <label>
-          Latitude: <input name="lat" defaultValue="50" />
-        </label>
-        <label>
-          Longitude: <input name="lon" defaultValue="36" />
-        </label>
-        <input type="submit" value="Subscribe" />
-        <input type="button" value="Abort" onClick={this.cancel} disabled={!this.state.request} />
-      </form>
+      <div>
+        <form onSubmit={this.submit}>
+          <label>
+            Latitude:
+            <input name="lat" type="number" step="0.000001" min="-90" max="90" defaultValue="50" required />
+          </label>
+          <label>
+            Longitude:
+            <input name="lon" type="number" step="0.000001" min="-180" max="180" defaultValue="36" required />
+          </label>
+          <input type="submit" value="Subscribe" />
+          <input type="button" value="Abort" onClick={this.cancel} disabled={!this.state.request} />
+        </form>
+        <StreamStats active={this.state.request} count={this.state.count} />
+        <ResultsTable data={this.state.data} />
+      </div>
     );
   }
 }
@@ -46,6 +58,34 @@ ReactDOM.render(
   document.getElementById('app'),
 )
 
+function ResultsTable({ data }) {
+  if (!data) return null;
+
+  return (
+    <dl>
+      <dt>Coords (lat/lon)</dt>
+      <dd>{data.coord.lat} / {data.coord.lon}</dd>
+      <dt>Humidity</dt>
+      <dd>{data.main.humidity}</dd>
+      <dt>Temperature</dt>
+      <dd>{data.main.temp}</dd>
+    </dl>
+  );
+}
+
+function StreamStats({ active, count }) {
+  if (!active) return null;
+
+  return (
+    <p>
+      The stream is running. The number of updates received: {count}.<br />
+      The updates will be pushed by backend every 10 seconds.<br />
+      This is done for demonstration purposes.<br />
+      In the actual app, this should be reduced to once per 10 minutes<br />
+      according to the data update rate on <a href="http://openweathermap.org">openweathermap.org</a>.
+    </p>
+  )
+}
 
 function fetchBSONStream(url, cb) {
   const controller = new AbortController();
@@ -65,10 +105,7 @@ function drainStream(stream, cb) {
 
   return reader.read().then(function next({ done, value }) {
     cb(value);
-    if (done) {
-      console.log("Stream completed");
-      return;
-    }
+    if (done) return;
 
     return reader.read().then(next);
   });
